@@ -36,16 +36,16 @@ public class Parser {
                     if (!previewImagePlaceHolder.html().equals("")) {
                         previewImageHref = previewImagePlaceHolder.attr("data-marker").substring(19);
                         itemName = elements.get(i).child(1).child(1).child(1).child(0).child(0).html();
-                        link = "https://www.avito.ru"
-                                + elements.get(i).child(1).child(0).child(0).attr("href");
+                        link = elements.get(i).child(1).child(0).child(0).attr("href");
+                        link = link.substring(link.lastIndexOf("/") + 1);
                     } else {
                         continue;
                     }
                 } else {
                     previewImageHref = elements.get(i).child(0).child(0).child(0).child(0).child(0).child(0).child(0).attr("data-marker").substring(19);
                     itemName = elements.get(i).child(0).child(1).child(1).child(0).child(0).html();
-                    link = "https://www.avito.ru"
-                            + elements.get(i).child(0).child(0).child(0).attr("href");
+                    link = elements.get(i).child(0).child(0).child(0).attr("href");
+                    link = link.substring(link.lastIndexOf("/") + 1);
                 }
                 carCells.add(new CarCell(previewImageHref, "", link, itemName));
             }
@@ -58,6 +58,7 @@ public class Parser {
 
     public Car getCarInfo(String link) {
         List<String> photosLinks = new ArrayList<>();
+        String carName = null;
         String mainPhotoLink = null;
         String telephonePhotoLink = null;
         String carDescription = null;
@@ -65,6 +66,8 @@ public class Parser {
         link = "https://www.avito.ru/moskva/avtomobili/" + link;
         try {
             Document carPage = Jsoup.connect(link).get();
+            carName =
+                    carPage.select("[class=sticky-header-prop sticky-header-title]").html();
             mainPhotoLink = carPage
                     .select("[class=gallery-imgs-container js-gallery-imgs-container]")
                     .get(0).child(0).child(0).attr("data-url");
@@ -75,8 +78,10 @@ public class Parser {
             }
             if (carPage.select("[class=item-description-html]").size() == 0) {
                 carDescription = carPage.select("[class=item-description-text]").get(0).html();
+                carDescription = carDescription.replaceAll("(<.*?>)", "").replaceAll("&.*?;", "");
             } else {
                 carDescription = carPage.select("[class=item-description-html]").get(0).html();
+                carDescription = carDescription.replaceAll("(<.*?>)", "").replaceAll("&.*?;", "");
             }
 
             phone = carPage.select("[class=item-phone-button-sub-text]").html();
@@ -85,7 +90,7 @@ public class Parser {
             exception.printStackTrace();
             throw new RuntimeException("RE");
         }
-        return new Car("CarName", mainPhotoLink, telephonePhotoLink, photosLinks, carDescription, phone);
+        return new Car(carName, mainPhotoLink, telephonePhotoLink, photosLinks, carDescription, phone);
     }
 
     public List<Brand> getBrandList() {
