@@ -1,0 +1,3 @@
+# AvitoParser
+
+Mockup for avitoParserApp
